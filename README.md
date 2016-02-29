@@ -5,11 +5,16 @@
 02. Reduce DOM operation
 
 	```javascript
-	function fancyAlert(arg) {
-	  if(arg) {
-	    $.facebox({div:'#foo'})
-	  }
-	}
+	function processArray(myArray){
+		var div = document.getElementById("container");
+		var message = "";
+
+		for(var i = 0; i < myArray.length; i++) {
+			message += myArray[i];
+		}
+
+		div.innerHTML = message;
+	}	
 	```
 03. Test
 
