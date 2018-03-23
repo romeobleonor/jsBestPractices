@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Object literal</title>
+    <script src="/js/mod1.js"></script>
+<!--
+    <link rel="stylesheet" href="../../css/pattern.css">
+    <link rel="stylesheet" href="../../css/main.css">
+-->
+    
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.1.2/mustache.min.js"></script>
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    
+    
+</head>
+<body>
+
+   <p><strong>Exercise: 2</strong> - Object literal pattern <a class="back" href="../../index.html">back</a></p>
+    <div id="peopleModule">
+            <h4>Object literal pattern</h4>
+            <h5>People</h5>
+            <input placeholder="name" type="text">
+            
+            <button id="addPerson">Add Person</button>
+            <ul id="people">
+                <script id="people-template" type="text/template">
+                    {{#people}}
+                        <li>
+                            <span>{{.}}</span>
+                            <i class="del">X</i>
+                        </li>
+                    {{/people}}
+                </script>
+            </ul>
+
+        </div>
+  
+     <hr>
+    <pre>
+        (function(){ // IIEF
+            
+            // object literal pattern
+            var people = {
+                people: [],                                          // local variable  
+                                                                                             
+                init: function(){                                    // main method - common pattern
+                    this.cacheDom();
+                    this.bindEvents();
+                    this.render();
+                },
+                
+                cacheDom: function(){                               // seperation of concern | reduce traversing the DOM
+                    this.$el = $('#peopleModule');
+                    this.$button = this.$el.find('button');
+                    this.$input = this.$el.find('input');
+                    this.$ul = this.$el.find('ul');
+                    this.$template = this.$el.find('#people-template').html();
+                },
+                
+                render: function(){
+                    // Mustache.render('Hi {{name}}', {name: "Romeo Leonor"})
+                    // spit out the value using mustache
+                    this.$ul.html(Mustache.render(this.$template, { people: this.people }))  
+                },
+                
+                bindEvents: function(){
+                    // bind an event to addPerson
+                    this.$button.on('click', this.addPerson.bind(this)) 
+                    
+                    // remove person item
+                    this.$ul.delegate('i.del', 'click', this.deletePerson.bind(this))
+                },
+                
+                // Only expose this method as your API in your module
+                addPerson: function(){
+                    // add person
+                    var person = this.$input.val();
+                    this.people.push(person);
+                    
+                    // clear and re-render
+                    this.$input.val('')
+                    this.render();
+                },
+                
+                deletePerson: function(e){
+                    
+                    var $li = $(e.target).closest('li'); // get the li that was click
+                    var i = this.$el.find('ul').find('li').index($li) // get index
+                    
+                    // remove and update the people array
+                    $li.remove();
+                    this.people.splice(i, 1);
+                }
+            }
+
+            people.init();
+        })()
+    </pre>
+    <script>
+        
+        // Object Literal Pattern
+        (function(){ // IIEF
+            
+            // object literal pattern
+            var people = {
+                people: [], // avoid global variable                                           
+                init: function(){
+                    this.cacheDom();
+                    this.bindEvents();
+                    this.render();
+                },
+                cacheDom: function(){  // seperation of concern | reduce traversing the DOM
+                    this.$el = $('#peopleModule');
+                    this.$button = this.$el.find('button');
+                    this.$input = this.$el.find('input');
+                    this.$ul = this.$el.find('ul');
+                    this.$template = this.$el.find('#people-template').html();
+                },
+                render: function(){
+                    // Mustache.render('Hi {{name}}', {name: "Romeo Leonor"})
+                    var data = { people: this.people }
+                    
+                    this.$ul.html(Mustache.render(this.$template, data)) // spit out the value using mustache 
+                },
+                bindEvents: function(){
+                    this.$button.on('click', this.addPerson.bind(this)) // bind the people obj
+                    
+                    // remove person item
+                    this.$ul.delegate('i.del', 'click', this.deletePerson.bind(this))
+                },
+                // Only expose this method as your API in your module
+                addPerson: function(){
+                    // add person
+                    var person = this.$input.val();
+                    this.people.push(person);
+                    
+                    // clear and re-render
+                    this.$input.val('')
+                    this.render();
+                },
+                deletePerson: function(e){
+                    
+                    var $li = $(e.target).closest('li'); // get the li that was click
+                    var i = this.$el.find('ul').find('li').index($li) // get index
+                    
+                    // remove and update the people array
+                    $li.remove();
+                    this.people.splice(i, 1);
+                }
+            }
+
+            people.init();
+        })()
+        
+        // methods that you expose to your module is called API, this allows other module to do actions setName(), getName()
+        // revealing module pattern which restricts other module to access on your module
+    
+    
+    </script>
+    
+    <!-- SPAGHETTI CODE
+        <script>
+    
+            // Template
+            var template = $("#people-template").html();
+            var people = [];
+        
+            // add event handler to the button
+            var btnAddPeople = $("#peopleModule").find('button');
+            
+            btnAddPeople.on('click', myCallback);
+            
+            function myCallback(){ // application of hoisting hehehe
+                
+                // add people to the array
+                people.push($('#peopleModule').find('input').val());
+                
+                // empty the input element
+                $('#peopleModule').find('input').val('');
+                
+                // save data
+                var data = { people: people };
+                
+                // add to the template ul
+                $('#peopleModule').find('ul').html(Mustache.render(template, data));
+            }
+            
+        
+            // remove li elem using delegate, index and splice
+            $('#peopleModule').find('ul').delegate('i.del', 'click', function(e){
+                
+                var $remove = $(e.target).closest('li'); // get the li
+               
+                var i = $('#peopleModule').find('ul').find('li').index($remove); // get the index
+                
+                $remove.remove(); //remove element
+                
+                people.slice(i, 1) // change the content of an array
+            })
+        
+            // pattern
+            var arr = ["a","b","c","d", "e"];
+            // change the content of an array
+            var arr2 = arr.splice(1,1);
+        
+    </script>
+    -->
+</body>
+</html>

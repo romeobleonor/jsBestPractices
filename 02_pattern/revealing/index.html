@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <script src="/js/mod1.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.1.2/mustache.min.js"></script>
+    
+    <link rel="stylesheet" href="../../assets/css/main.css">
+</head>
+<body>
+   <p><strong>Exercise: 3</strong> - Revealing pattern <a class="back" href="../../index.html">back</a></p>
+    <div id="peopleModule">
+            <h4>Revealing pattern</h4>
+            <h4>People</h4>
+            <input placeholder="name" type="text">
+            
+            <button id="addPerson">Add Person</button>
+            <ul id="people">
+                <script id="people-template" type="text/template">
+                    {{#people}}
+                        <li>
+                            <span>{{.}}</span>
+                            <i class="del">X</i>
+                        </li>
+                    {{/people}}
+                </script>
+            </ul>
+
+        </div>
+   
+     <hr>
+    <pre>
+        var people = (function(){
+            
+            // People data
+            var people = [];
+            
+            // Cache DOM
+            var $peopleMod = $('#peopleModule');
+            var $btn = $peopleMod.find('button');
+            var $inpt = $peopleMod.find('input');
+            var $ul = $peopleMod.find('ul');
+            var $template = $peopleMod.find('#people-template').html();
+            
+            // Bind events
+            $btn.on('click', addPerson);
+            $ul.delegate('i.del','click', delPerson)
+
+            // Render
+            _render();
+            
+            // Api definition
+            function _render(){
+                $ul.html(Mustache.render($template, {people: people}))
+            }
+            
+            // Add Person
+            function addPerson(value){ 
+                var name = (typeof value === 'string') ? value : $inpt.val();
+                
+                if(name === ""){
+                    alert('Please enter a name')
+                }else{
+                    people.push(name);
+                    _render();
+                    $inpt.val('')
+                }    
+            }
+            
+            // Delete Person
+            function delPerson(e){
+                var i, $li;
+                if(typeof e === 'number'){
+                    i = e;
+                }else{
+                    $li = $(e.target).closest('li');
+                    i = $ul.find('li').index($li);
+                }
+                people.splice(i, 1);
+                _render();
+            }
+            
+            // revealing pattern or api
+            return {
+                addPerson: addPerson,
+                delPerson: delPerson
+            }
+        })()
+
+    </pre>
+    
+    <!-- REVEALING PATTERN - self-executing anonymous FN  allowing methods or api to be access by other modules -->
+    <script>
+        
+        var people = (function(){
+            
+            // People data
+            var people = [];
+            
+            // Cache DOM
+            var $peopleMod = $('#peopleModule');
+            var $btn = $peopleMod.find('button');
+            var $inpt = $peopleMod.find('input');
+            var $ul = $peopleMod.find('ul');
+            var $template = $peopleMod.find('#people-template').html();
+            
+            
+            // Bind events
+            $btn.on('click', addPerson);
+            $ul.delegate('i.del','click', delPerson)
+
+            // Render
+            _render();
+            
+            // Api definition
+            function _render(){
+                $ul.html(Mustache.render($template, {people: people}))
+            }
+            
+            // Add Person
+            function addPerson(value){ 
+                var name = (typeof value === 'string') ? value : $inpt.val();
+                
+                if(name === ""){
+                    alert('Please enter a name')
+                }else{
+                    people.push(name);
+                    _render();
+                    $inpt.val('')
+                }    
+            }
+            
+            // Delete Person
+            function delPerson(e){
+                
+                var i, $li;
+                if(typeof e === 'number'){
+                    i = e;
+                }else{
+                    $li = $(e.target).closest('li');
+                    i = $ul.find('li').index($li);
+                }
+                people.splice(i, 1);
+                _render();
+            }
+            
+            // revealing pattern or api
+            return {
+                addPerson: addPerson,
+                delPerson: delPerson
+            }
+        })()
+        
+    
+        
+        
+        // EXAMPLE
+        var revealingPattern = (function(){
+            // local variable
+            var name = "Romeo"; 
+            // will be an API
+            function showName(){
+                console.log(name)
+            }
+            // API
+            return {
+                showName: showName
+            }
+        })();
+    
+    </script>
+    
+    <!-- OBJECT LITERAL PATTERN -->
+    <!--<script>
+         
+        (function(){ // IIEF
+            
+            // object literal pattern
+            var people = {
+                people: [], // avoid global variable                                           
+                init: function(){
+                    this.cacheDom();
+                    this.bindEvents();
+                    this.render();
+                },
+                cacheDom: function(){  // seperation of concern | reduce traversing the DOM
+                    this.$el = $('#peopleModule');
+                    this.$button = this.$el.find('button');
+                    this.$input = this.$el.find('input');
+                    this.$ul = this.$el.find('ul');
+                    this.$template = this.$el.find('#people-template').html();
+                },
+                render: function(){
+                    // Mustache.render('Hi {{name}}', {name: "Romeo Leonor"})
+                    var data = { people: this.people }
+                    
+                    this.$ul.html(Mustache.render(this.$template, data)) // spit out the value using mustache 
+                },
+                bindEvents: function(){
+                    this.$button.on('click', this.addPerson.bind(this)) // bind the people obj
+                    
+                    // remove person item
+                    this.$ul.delegate('i.del', 'click', this.deletePerson.bind(this))
+                },
+                // Only expose this method as your API in your module
+                addPerson: function(){
+                    // add person
+                    var person = this.$input.val();
+                    this.people.push(person);
+                    
+                    // clear and re-render
+                    this.$input.val('')
+                    this.render();
+                },
+                deletePerson: function(e){
+                    
+                    var $li = $(e.target).closest('li'); // get the li that was click
+                    var i = this.$el.find('ul').find('li').index($li) // get index
+                    
+                    // remove and update the people array
+                    $li.remove();
+                    this.people.splice(i, 1);
+                }
+            }
+
+            people.init();
+        })()
+        
+        // methods that you expose to your module is called API, this allows other module to do actions setName(), getName()
+        // revealing module pattern which restricts other module to access on your module
+    
+    
+    </script>-->
+    
+</body>
+</html>
+
+
+
+
+<!-- 
+
+- Characteristic of a good software developer
+- Think like software developer - someone who knows how to break code into logical component
+- Component that do its own think
+- Self-contain module
+     - everything to do with module is in my module
+    - no global variable
+    - If module manage more than one thing it should be split up
+- seperation of concern ( searching the dom, binding element, updating html, removing element )
+- Don't repeat yourself (Searching the DOM - peopleModule over and over ) - DOM Caching
+- no memory leak - event be able to unbound - as long as you code has event listener that never goes away
+- 
+
+-->

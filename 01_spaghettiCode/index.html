@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Spaghetti Code</title>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.1.2/mustache.min.js"></script>
+
+  <link rel="stylesheet" href="../assets/css/main.css">
+  
+  <style>
+  </style>
+    
+</head>
+<body>
+  <p><strong>Exercise: 1</strong> - Spaghetti Code <a class="back" href="../index.html">back</a></p>
+    <div id="peopleModule">
+      <h1>People</h1>
+      <input placeholder="name" type="text">
+
+      <button id="addPerson">Add Person</button>
+      <ul id="people">
+          <script id="people-template" type="text/template">
+              {{#people}}
+                  <li>
+                      <span>{{.}}</span>
+                      <i class="del">X</i>
+                  </li>
+              {{/people}}
+          </script>
+      </ul>
+  </div>
+        
+    <hr>
+    <pre>
+        // #1 Template
+        var template = $("#people-template").html();
+        var people = [];
+
+        // #2 bind the addPerson eventHandler
+        var btnAddPeople = $("#peopleModule").find('button');
+        btnAddPeople.on('click', addPerson);
+        
+        // #3 addPerson function
+        function addPerson(){                                           // concept hoisting
+
+            people.push($('#peopleModule').find('input').val());        // add person to []
+
+            
+            $('#peopleModule').find('input').val('');                   // clear input element
+
+            
+            $('#peopleModule')                                          // render the template
+               .find('ul')
+               .html(Mustache.render(template, {people: people}));
+        }
+
+
+        // remove li elem using delegate, index and splice
+        $('#peopleModule').find('ul').delegate('i.del', 'click', function(e){
+
+            var $remove = $(e.target).closest('li');                     // get the closest li of x button
+
+            var i = $('#peopleModule')                                   // get the li index
+                .find('ul').find('li')
+                .index($remove); 
+
+            $remove.remove();                                            // remove li element from ul
+
+            people.slice(i, 1)                                           // change the content of an array
+        })
+    </pre>
+    <script>
+    
+            // Template
+            var template = $("#people-template").html();
+            var people = [];
+        
+            // add event handler to the button
+            var btnAddPeople = $("#peopleModule").find('button');
+            
+            btnAddPeople.on('click', myCallback);
+            
+            function myCallback(){ // application of hoisting hehehe
+                
+                // add people to the array
+                people.push($('#peopleModule').find('input').val());
+                
+                // empty the input element
+                $('#peopleModule').find('input').val('');
+                
+                // save data
+                var data = { people: people };
+                
+                // add to the template ul
+                $('#peopleModule').find('ul').html(Mustache.render(template, data));
+            }
+            
+        
+            // remove li elem using delegate, index and splice
+            $('#peopleModule').find('ul').delegate('i.del', 'click', function(e){
+                
+                var $remove = $(e.target).closest('li'); // get the li
+               
+                var i = $('#peopleModule').find('ul').find('li').index($remove); // get the index
+                
+                $remove.remove(); //remove element
+                
+                people.slice(i, 1) // change the content of an array
+            })
+        
+            // pattern
+            var arr = ["a","b","c","d", "e"];
+            // change the content of an array
+            var arr2 = arr.splice(1,1);
+        
+        
+    </script>
+    
+    
+    
+</body>
+</html>
+
+

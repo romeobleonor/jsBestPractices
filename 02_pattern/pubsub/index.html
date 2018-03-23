@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pubsub Pattern</title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.1.2/mustache.min.js"></script>
+    <link rel="stylesheet" href="../../assets/css/main.css">
+</head>
+
+    
+<body>
+   <p><strong>Exercise: 4</strong> - PubSub, Mediator, Event System pattern <a class="back" href="../../index.html">back</a></p>
+   
+<div id="wrapper">
+    <div class="mod1" id="StatModule">
+        <h1><strong>Status component</strong></h1>
+        <p class="dyanamicCount">
+        <script id="stats-template" type="text/template">
+            Member's count: <strong>{{people}}</strong></p>
+        </script>
+        </p>
+    </div>
+  
+   
+   <div id="peopleModule" class="mod2">
+      <p><strong>People component</strong></p>
+       <p>
+           <label for="name">Name:</label>
+           <input type="text" placeholder="Please enter a name" id="name">
+           <button>Add people</button>
+       </p>
+       
+       <ul id="people">
+          <script id="people-template" type="text/template">
+            {{#people}}
+                <li>
+                    <span>{{.}}</span> <i class="del">X</i>
+                </li>
+            {{/people}}
+          </script>
+       </ul>
+   </div>
+   
+</div>
+   
+<hr>
+<pre>
+    // Pubsub pattern
+    var pubsub = {
+        events: {},                                                 
+        subscribe: function(eventName, fn){                         
+            this.events[eventName] = this.events[eventName] || []; 
+            this.events[eventName].push(fn)                         
+        },
+        unsubscribe: function(eventName, fn){
+            if(this.events[eventName]){
+                for(var i = 0; this.events[eventName].length; i++){
+                    if(this.events[eventName][i] === fn){
+                        this.events[eventName].splice(i, 1);
+                        break;
+                    }
+                }
+            }
+        },
+        publish: function(eventName, data){
+            if(this.events[eventName]){
+                this.events[eventName].forEach(function(fn){
+                    fn(data)
+                })
+            }
+        }
+    }
+    
+    // Status Module
+    var stats = (function(){
+        var people = 0;
+        
+        // cache dom
+        var $statMod = $('#StatModule');
+        var template = $("#stats-template").html();
+        var $countLine = $('.dyanamicCount')
+        
+        // bind events
+        pubsub.subscribe('peopleChanged', setCount);
+         _render();
+        
+        
+        function _render(){
+            $countLine.html(Mustache.render(template, {people: people}))
+        }
+        
+        function setCount(val){
+            people = val; // replace the initial count
+            _render();
+        }
+        
+    })()
+    
+    // People Module 
+    var people = (function(){
+        var people = [];
+        
+        // cacheDom
+        var $peopleMod = $('#peopleModule');
+        var $btn = $peopleMod.find('button');
+        var $input = $peopleMod.find('input');
+        var peopleTemp = $('#people-template').html();
+        var $peopleList = $peopleMod.find('ul#people');
+        
+        // bind events
+        $btn.on('click', addPerson)
+        $peopleList.delegate('i.del', 'click', delPerson)
+        
+        // Render
+        function _render(){
+            $peopleList.html(Mustache.render(peopleTemp, {people: people}))
+            
+            pubsub.publish('peopleChanged', people.length);  // stats module is listening to this event
+        }
+        
+        // API
+        function addPerson(value){        
+            
+            var name = (typeof value === 'string') ? value : $input.val(); // value from console or input
+            
+            if(!$input.val()){
+                alert('Please enter a name')
+            }else{
+                people.push(name);    
+            }
+            
+            $input.val('')
+            _render()
+        }
+        
+        
+        function delPerson(event){
+            var $li, i;
+            
+            if(typeof event === 'number'){
+                i = event
+            }else{
+                $li = $(event.target).closest('li');
+                i = $peopleList.find('li').index($li);
+                
+            }
+            
+             people.splice(i, 1);
+            _render();
+           
+        }
+        
+        // Reveal
+        return {
+            addPerson: addPerson,
+            delPerson: delPerson
+        }
+    })()
+</pre>
+    
+<script>
+    // Pubsub pattern
+    var pubsub = {
+        events: {},                                                 
+        subscribe: function(eventName, fn){                         
+            this.events[eventName] = this.events[eventName] || []; 
+            this.events[eventName].push(fn)                         
+        },
+        unsubscribe: function(eventName, fn){
+            if(this.events[eventName]){
+                for(var i = 0; this.events[eventName].length; i++){
+                    if(this.events[eventName][i] === fn){
+                        this.events[eventName].splice(i, 1);
+                        break;
+                    }
+                }
+            }
+        },
+        publish: function(eventName, data){
+            if(this.events[eventName]){
+                this.events[eventName].forEach(function(fn){
+                    fn(data)
+                })
+            }
+        }
+    }
+    
+    // Status Module
+    var stats = (function(){
+        var people = 0;
+        
+        // cache dom
+        var $statMod = $('#StatModule');
+        var template = $("#stats-template").html();
+        var $countLine = $('.dyanamicCount')
+        
+        // bind events
+        pubsub.subscribe('peopleChanged', setCount);
+         _render();
+        
+        
+        function _render(){
+            $countLine.html(Mustache.render(template, {people: people}))
+        }
+        
+        function setCount(val){
+            people = val; // replace the initial count
+            _render();
+        }
+        
+    })()
+    
+    // People Module = (spagetti code, object litteral pattern or revealing pattern)
+    var people = (function(){
+        var people = [];
+        
+        // cacheDom
+        var $peopleMod = $('#peopleModule');
+        var $btn = $peopleMod.find('button');
+        var $input = $peopleMod.find('input');
+        var peopleTemp = $('#people-template').html();
+        var $peopleList = $peopleMod.find('ul#people');
+        
+        // bind events
+        $btn.on('click', addPerson)
+        $peopleList.delegate('i.del', 'click', delPerson)
+        
+        // Render
+        function _render(){
+            $peopleList.html(Mustache.render(peopleTemp, {people: people}))
+            
+            pubsub.publish('peopleChanged', people.length);  // stats module is listening to this event
+        }
+        
+        // API
+        function addPerson(value){        
+            
+            var name = (typeof value === 'string') ? value : $input.val(); // value from console or input
+            
+            if(!$input.val()){
+                alert('Please enter a name')
+            }else{
+                people.push(name);    
+            }
+            
+            $input.val('')
+            _render()
+        }
+        
+        
+        function delPerson(event){
+            var $li, i;
+            
+            if(typeof event === 'number'){
+                i = event
+            }else{
+                $li = $(event.target).closest('li');
+                i = $peopleList.find('li').index($li);
+                
+            }
+            
+             people.splice(i, 1);
+            _render();
+           
+        }
+        
+        // Reveal
+        return {
+            addPerson: addPerson,
+            delPerson: delPerson
+        }
+    })()
+    
+</script>
+</body>
+</html>

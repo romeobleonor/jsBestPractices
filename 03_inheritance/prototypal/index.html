@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prototypal Inheritance - Object.create and object literal</title>
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    
+</head>
+<body>
+    <p><strong>Exercise: 7</strong> - Prototypal Inheritance pattern using <strong>object literal</strong> / <strong>Object.create()</strong> <a class="back" href="../../index.html">back</a></p>
+     <h5>Notes:</h5>
+    <div>
+        <ul>
+            <li>Protypal inheritance uses object literal and Object.create method</li>
+            <li>musician = Object.create(human) - creates an inheritance</li>
+            <li>aquil = Object.create(musician) - creates an instance</li>
+            <li>Aquil is an instance of Musician, aquil contains instrument and name as its own property, aquil has a prototype of Musician, which inherits the "playInstrument" property, Musician also inherits the person's prototype which can access the person's properties and method</li>
+            <li>Js will search the property in the prototype chain up to the base object</li>
+            <li>Every single object has a prototype, except for the base object</li>
+            <li>By default, object you create has Object.prototype and function has Function.prototype</li>
+            <li>having the same name but different implementation</li>
+            <li>Sometime initialize is quit complex, therefore using constructo help you encapsulate some of proeprties not needed - initialization method</li>
+        </ul>
+    </div>
+    
+    
+    <hr>
+    <pre>
+        /*#################################################
+                Simple Prototypal Inheritance
+        #################################################*/
+        
+        // Basic 1
+        var parent = {
+            get: function(){
+                console.log(this.val)
+            },
+            val: "unknown"
+        }
+        
+        // Subclass
+        var child = Object.create(parent);
+        child.val = "Child"
+        
+        // Subclass 
+        var grandChild = Object.create(child);
+        grandChild.val = "Grand child"
+        
+        // #Test
+        child.get();    // js will look for the get method in __proto__
+        grandChild.get();
+        
+        
+        // Basic 2
+        var sample = (function(){
+         
+          let parent = {
+            get() { console.log(`Hello ${this.fname}`) },
+            val: 'unknown'
+          }
+
+          return function(fname, lname){
+            // inheriting the properties of the parent
+            let child = Object.create(parent, {
+                fname: {writable: false, value: fname}, // childs's own property
+                lname: {writable: false, value: lname}
+            });
+            return child
+          }
+        })();
+
+        var jon = sample('Romeo', 'Leonor');
+        var leah = sample('Leah', 'Maqueda');
+        
+        
+        /*#################################################
+                Prototypal Inheritance w/ construtor
+        #################################################*/
+        
+        // parent class
+        var answer = {
+            constructor: function(val){
+                this._val = val;
+            },
+            get: function(){
+                return this._val
+            }
+        }
+        
+        // instance
+        var lifeAns = Object.create(answer)
+        lifeAns.constructor("Romeo");
+        var name1 = lifeAns.get()
+        console.log(name1)
+        
+        
+        // subclass and override a method
+        var FirmAns = Object.create(answer)
+        
+        FirmAns.get = function(){ 
+            return answer.get.call(this) + "!!";
+        }
+       
+        
+        // instance
+        var luckyAns = Object.create(FirmAns);
+        luckyAns.constructor("Romeo");
+        luckyAns.get();
+        
+        
+        #############################################
+        #1 Classical Model of PERSON and MUSICIAN using UTILITY
+        #############################################
+        
+        // BASIC 1
+        var human = {
+            species: 'human',
+            shoutName: function(){
+                console.log(`Hi I'm ${this.name}`)
+            }
+        }
+        
+        var musician = Object.create(human);
+        musician.species = 'musician';
+        musician.playInstrument = function(){
+            console.log(`plays... ${this.instrument}`)
+        }
+        
+        var aquil = Object.create(musician);
+        aquil.name = 'Zildjian'
+        aquil.instrument = 'Drums';
+        
+        
+        ## NOTE: Aquil is an instance of musician. He has it's own property 'instrument' and 'name'
+                 and prototype of musician, with properties 'species' and 'playInstrument' and
+                 and prototype of human with properties 'species' and shoutName
+        
+        
+        // BASIC 2
+        var human = {
+            species: 'human',
+            shoutName: function(){
+                console.log(`Hi I'm ${this.name}`)
+            },
+            createTweak: function(obj){
+                var instance = Object.create(this);
+
+                Object.keys(obj).forEach(function(key){
+                    instance[key] = obj[key]
+                })
+                
+                return instance;
+            }
+        };
+        
+
+        var musician = human.createTweak({
+            species: 'musician', 
+            playInstrument : function(){
+                console.log(`plays... ${this.instrument}`)
+            }
+        });
+        
+        var maya = Object.create(musician);
+        maya.name = 'Hilary'
+        maya.instrument = 'Piano';
+        
+        
+        // BASIC 3
+        let personFactory = (function(){
+           
+            // main prototype
+            let human = {
+                species: 'human',
+                shoutName: function(){
+                    console.log(`Hi I'm ${this.fname}`)
+                },
+                createObj: function(obj){
+                    let instance = Object.create(this);
+                    
+                    Object.keys(obj).forEach( function(key) {
+                        instance[key] = obj[key]
+                    })
+                    return instance
+                }
+            }
+            
+            // sub prototype
+            let musician = human.createObj({
+                species: 'musician',
+                playInstrument : function(){
+                    console.log(`plays... ${this.instrument}`)
+                }    
+            })
+            
+            return function(fname, lname, instrument){
+                let person = Object.create(musician, {
+                    fname: {writable: false, value: fname},
+                    lname: {writable: false, value: lname},
+                    instrument: {writable: true, value: instrument}
+                    
+                })
+                
+                return person;
+            }
+        })();
+        
+        let aquil = personFactory('Zildjian', 'Leonor', 'Precussion');
+        let maya = personFactory('Hillary', 'Leonor', 'Electric piano');
+        
+        
+        
+        
+         /*#################################################
+                Prototypal Inheritance w/ tweak
+        #################################################*/
+        
+        var arr = Object.keys({a:1,b:2, c:3}) // return an array
+        
+        // step 1 - create an object using object literal
+        var human = { key: value }
+        
+        // step 2 - create an inheritance and add some property
+        var musician = Object.create(human)
+        musician.playInstrument = function(){}
+        
+        // step 3 - create an instance and its own property
+        var aquil = Object.create(musician)
+        aquil.name = "Zildjian"
+        aqul.instrument = "Drums"
+        
+        
+        // @A Tweak setup
+        var human = {
+            species: "Human",
+            createTweak: function(obj){
+                var instance = Object.create(this)
+                
+                // add properties like this instance['key'] = obj[key]
+                // instance[key] - set a key
+                // obj[key] - get the value of a key
+                // Object.keys(obj) - return an array of keys
+                // musician = Object.create(human) is tha same as instance = Object.create(this)
+                
+                Object.keys(obj).forEach(function(key){
+                    instance[key] = obj[key]; // {species: 'musicia', name: 'Zildjian Aquil'}
+                })
+                
+                return instance;
+            }
+            sayName: function(){
+                console.log(`Hi I'm ${this.name}`) // this.name will be added later by an instance 
+            },
+            sayShoutName: function(){
+                console.log(`Hi I'm ${this.name}!!`)
+            }
+        }
+        
+        // @B inheritance with properties    
+        var musician = human.createTweak({
+            species: 'musician',
+            playInstrument: function(){
+                console.log(`plays... ${this.instrument}`)
+            },
+            
+        });
+        
+        
+        // @C instance 1
+        var maya = Object.create(musician)
+        maya.name = "Maya Hillary";
+        maya.instrument = "Piano"
+        
+        // instance 2
+        var aquil = Object.create(musician)
+        aquil.name = "Zildjian Aqul";
+        aquil.instrument = "Drums"
+        
+       
+       
+    </pre>
+    <script>
+
+    </script>
+</body>
+</html>

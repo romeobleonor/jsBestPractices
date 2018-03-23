@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Classical Inheritance - new keyword and constructor</title>
+    <link rel="stylesheet" href="../../assets/css/main.css">
+</head>
+<body>
+    <p><strong>Exercise: 6</strong> - Classical Inheritance pattern using <strong>'new' keyword</strong> and <strong>constructor</strong> <a class="back" href="../../index.html">back</a></p>
+    <div>
+       <h5>Notes:</h5>
+        <ul>
+            <li>In classical model, object is created using constructor and the 'new' keyword. We define a contructor first using function unlike prototypal model which uses object literal</li>
+            <li>The primary use of constructor is to intantiate an object and initialize the data, this encapsulate stuff that are not needed to be shown in your application</li>
+            <li>Function is a variant of object, meaning you can add property, pass it as argument and initialize. In addtion, when you define a function, javascript creates name, length and prototype property behind the scene. This prototype refers to a new empty object</li>
+            <li>Prototy property is also use to add method/property to be shared among instances</li>
+            <li>The technique below uses a function call "inherit" to implement inheritance, please see the code below.</li>
+          
+        </ul>
+    </div>
+    
+    
+    <hr>
+    <pre>
+      
+        #############################################
+        Javascript Definitive Guide - Classical Model
+        #############################################
+        // In Classical, we create a construtor first, becuase it is a function
+        // javascript will create name, length and prototype properties behind the scene
+        // This prototype property points to an empty object, which you can add using Answer.prototype
+        
+        // #1.0 - Create constructor first
+        function Answer(value){
+          this._val = value;
+        }
+
+        // #1.1 - property added to the prototype object
+        Answer.prototype.get = function (){
+          return this._val
+        }
+
+        // #2.0 - instance using 'new' - remember this is a classical inheritance
+        var lifeAnswer = new Answer(42);
+        lifeAnswer.get(); // 42
+        
+        // #2.1 - You can also add hasOwnProperty like this
+        lifeAnswer.name = "Romeo Leonor";
+        
+        // #3.0 - Inheritance - create another class to be extended
+        function FirmAnswer(value){
+            Answer.call(this, value) // call the parent method
+        }
+        // #3.1 - assign the empty prototype to Answer.prototype where the inheritance magic happens
+        FirmAnswer.prototype = Object.create(Answer.prototype) // FirmAnswer.prototype = Answer.prototye
+        
+        
+        
+        #############################################
+        Classical Model of PERSON and MUSICIAN
+        #############################################
+        
+        // #1a - Class Person
+        function Person(name, status){
+          this._name = name;                 // can be access by maya, aquil
+          this._status = status;             // can be access by maya, aquil
+        }
+
+        // #1b - Shared method
+        Person.prototype.shoutName = function(){
+          console.log(`Hi my name is ${this._name}!`)
+        }
+
+        // #1c - Instance of Person
+        var jon = new Person("Romeo Leonor", "married");
+        jon.age = 38;                         // can't be access by maya, aquil
+        
+
+        // #2a - Class to be extend
+        function Musician(name, status, instrument){
+          Person.call(this, name, status);    // inherits the properties
+          this.instrument = instrument
+        }
+
+        // #2b - Inheritance Magic
+        Musician.prototype = Object.create(Person.prototype);
+
+        // #2c - Shared method again
+        Musician.prototype.getInstrument = function() {
+          console.log(`${this._name}'s instrument is ${this.instrument}`)
+        }
+
+        // #3a - Instance of Musician
+        var aquil = new Musician('Zildjian', 'single', 'Drums')
+        var maya = new Musician('Hillary', 'single', 'Piano' )
+
+        dir(Person)
+        dir(Musician)
+        dir(jon)
+        dir(maya)
+        
+        
+            
+        #############################################
+        Classical Model of PERSON and MUSICIAN using UTILITY
+        #############################################
+        
+        // #1 - Person2 constructor
+        var Person2 = function(name){ 
+            this.name = name
+        }
+        
+        // Prototype property (shout and show name)
+        Person2.prototype.showName = function(){
+            console.log(`Hi my name is ${this.name}`)
+        }
+        Person2.prototype.shoutName = function(){
+             console.log(`Hi my name is ${this.name}!`)
+        }
+                
+        // #2 - Musician2 construtor 
+        var Musician2 = function(name, instrument){
+            // Person.call(this, name);
+            Musician2.super_.call(this, name) // using the super
+            
+            this.instrument = instrument;    // hasownproperty
+        }
+        
+        // #3 - Inheritance utility technique
+        inherits(Musician2, Person2);
+        
+        // #3.1 - Prototype property of Musician
+        Musician2.prototype.getInstrument = function(){
+            console.log(`${this.name}'s instrument is ${this.instrument}`);
+        }
+        
+        // #3.1 - Override shoutName method
+        Musician2.prototype.shoutName = function(){
+            console.log(`DUDE! my name is ${this.name}!!!!!`)
+        }
+        
+        // #4 - Instance
+        // Create an instance of Person2
+        var jon2 = new Person2("jon2")
+        
+        // Create an instance of Musician2
+        var aquil2 = new Musician2('aquil2', 'Precussion')
+        
+        // call shoutname()
+        jon2.shoutName();      // Hi my name is jon2!
+        
+        // call override shoutname()
+        aquil2.shoutName();    // DUDE! my name is aquil2
+        aquil2.getInstrument();
+        
+        
+        // #99 - Utility
+        function inherits (ctor, superCtor) {
+          ctor.super_ = superCtor;
+          ctor.prototype = Object.create(superCtor.prototype, {
+            constructor: {
+              value: ctor,
+              enumerable: false,
+              writable: true,
+              configurable: true
+            }
+          });
+        };
+    </pre>
+    <script>
+        
+        
+      
+        
+        
+        // Create a Contrutor
+        var Person = function(name){ // js behind the scene create an empty object called prototype
+            this.name = name
+        }
+        
+        // add methods that will be shared to all instance
+        Person.prototype.showName = function(){
+            console.log(`Hi my name is ${this.name}`)
+        }
+        
+        Person.prototype.shoutName = function(){
+             console.log(`Hi my name is ${this.name}!`)
+        }
+        
+        // #1 Instantiate
+        var jon = new Person('jon');
+        jon.showName();
+        jon.shoutName();
+        
+        
+        // #2 Inheritance 
+        var Musician = function(name, instrument){
+            // Person.call(this, name);
+            Musician.super_.call(this, name) // using the super
+            
+            this.instrument = instrument;    // hasownproperty
+        }
+        
+        // Inherit Musician to Person
+        inherits(Musician, Person);
+        
+        // add method to the musician prototy
+        Musician.prototype.getInstrument = function(){
+            console.log(`${this.name}'s instrument is ${this.instrument}`);
+        }
+        
+        // #3 Override shoutName method
+        Musician.prototype.shoutName = function(){
+            console.log(`DUDE! my name is ${this.name}!!!!!`)
+        }
+        
+        // #1 Instantiate
+        var aquil = new Musician('Aquil', 'Precussion')
+        aquil.shoutName();
+        aquil.showName();
+        aquil.getInstrument();
+        
+        // Utility
+        function inherits (ctor, superCtor) {
+          ctor.super_ = superCtor;
+          ctor.prototype = Object.create(superCtor.prototype, {
+            constructor: {
+              value: ctor,
+              enumerable: false,
+              writable: true,
+              configurable: true
+            }
+          });
+        };
+        
+    </script>
+</body>
+</html>
